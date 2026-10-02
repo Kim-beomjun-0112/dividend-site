@@ -96,31 +96,35 @@ function buildUS() {
   const stocks = readJSON('data/raw/us_stocks.json', []);
   const out = [];
   const histMonths = (hist) => { if (!hist || !hist.length) return null; const latest = new Date(hist[0].d); const c = new Date(latest); c.setFullYear(c.getFullYear() - 1); return monthsFromDates(hist.filter((h) => new Date(h.d) > c).map((h) => h.d)); };
+  // 야후 TTM이 네이버 수익률과 크게 어긋나면(액면병합 등) 네이버 값을 신뢰
+  const pickYield = (ttm, listed) => { if (ttm == null) return listed; if (listed == null) return ttm; const r = ttm / listed; return r > 1.8 || r < 0.55 ? listed : ttm; };
   for (const e of etfs) {
-    const y = e.yieldTtm ?? e.yieldListed;
-    if (!e.price || !y || y < 0.3 || isLev(e.nameEn || e.name)) continue;
+    const y = pickYield(e.yieldTtm, e.yieldListed);
+    if (!e.price || !y || y < 0.3 || y > 120 || isLev(e.nameEn || e.name)) continue;
+    if (y !== e.yieldTtm) e.ttm = null;
     const f = e.freq && e.freq !== 'unknown' ? e.freq : 'quarterly';
     const pm = (!e.est && histMonths(e.hist)) || monthsFromFreq(f, monthOf(e.lastEx));
     out.push({
-      id: `US:${e.symbol}`, m: 'US', t: 'etf', c: e.symbol, n: e.nameKo || e.name, nEn: e.nameEn || e.name, p: e.price, cur: 'USD',
+      id: `US:${e.symbol}`, m: 'US', t: 'etf', c: e.symbol, n: e.nameKo || e.name, nEn: (e.nameEn && e.nameEn !== (e.nameKo || e.name)) ? e.nameEn : undefined, p: e.price, cur: 'USD',
       y: r2(y), dps: r2(e.ttm ?? (y / 100) * e.price), f, py: e.perYear ?? null, est: !!e.est && !e.yahoo,
       pm: ['daily', 'weekly', 'monthly'].includes(f) ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : pm, lx: e.lastEx || null, la: e.lastAmt ?? null,
-      h: (e.hist || []).slice(0, 24).map((h) => [h.d, h.a]),
-      mc: e.mcapText || null, is: e.issuer || null, ex: e.exchange || null, nav: e.nav ?? null, ret3m: e.ret3m ?? null, src: e.yahoo ? 'naver+yahoo' : 'naver',
+      h: (e.hist || []).slice(0, 14).map((h) => [h.d, h.a]),
+      mc: e.mcapText || null, is: e.issuer || null, ex: e.exchange || null, src: e.yahoo ? 'naver+yahoo' : 'naver',
     });
   }
   for (const s of stocks) {
-    const y = s.yieldTtm ?? s.yieldListed;
-    if (!s.price || !y || y < 0.3) continue;
+    const y = pickYield(s.yieldTtm, s.yieldListed);
+    if (!s.price || !y || y < 0.3 || y > 60) continue;
+    if (y !== s.yieldTtm) s.ttm = null;
     let f = s.yahoo && s.freq ? s.freq : (US_MONTHLY_STOCKS.has(s.symbol) ? 'monthly' : 'quarterly');
     if (f === 'unknown') f = 'quarterly';
     const anchor = monthOf(s.lastEx) || (s.payAt ? new Date(s.payAt).getMonth() + 1 : null);
     const pm = (s.yahoo && histMonths(s.hist)) || monthsFromFreq(f, anchor);
     out.push({
-      id: `US:${s.symbol}`, m: 'US', t: 'stock', c: s.symbol, n: s.nameKo || s.name, nEn: s.nameEn || s.name, p: s.price, cur: 'USD',
+      id: `US:${s.symbol}`, m: 'US', t: 'stock', c: s.symbol, n: s.nameKo || s.name, nEn: (s.nameEn && s.nameEn !== (s.nameKo || s.name)) ? s.nameEn : undefined, p: s.price, cur: 'USD',
       y: r2(y), dps: r2(s.ttm ?? s.dpsAnnual ?? (y / 100) * s.price), f, py: s.perYear ?? (f === 'monthly' ? 12 : 4), est: !s.yahoo,
       pm: ['daily', 'weekly', 'monthly'].includes(f) ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : pm, lx: s.lastEx || null, la: s.lastAmt ?? null,
-      h: (s.hist || []).slice(0, 24).map((h) => [h.d, h.a]),
+      h: (s.hist || []).slice(0, 14).map((h) => [h.d, h.a]),
       mc: s.mcapText || null, mcap: s.mcap ?? null, sec: s.sector || null, ex: s.exchange || null, src: s.yahoo ? 'naver+yahoo' : 'naver',
     });
   }

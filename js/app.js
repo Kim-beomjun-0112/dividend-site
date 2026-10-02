@@ -191,7 +191,10 @@
     // 선택된 것 중 top에 없는 건 추가로 보여줌
     const shown = [...top]; state.picks.forEach((id) => { if (!shown.find((x) => x.id === id)) { const it = state.items.find((x) => x.id === id); if (it) shown.unshift(it); } });
     $('#result-title').textContent = `추천 종목 ${state.candidates.length.toLocaleString()}개 중 상위`;
-    $('#picks').innerHTML = shown.map((it) => pickRow(it, state.picks.includes(it.id))).join('');
+    const hidden = state.items.filter((it) => state.mkts.has(it.m) && state.types.has(it.t) && freqMatch(it, state.freq) && it.y > state.ymax).length;
+    const hint = hidden && state.ymax < 60 && (state.freq === 'weekly' || state.freq === 'daily' || hidden > state.candidates.length) ? `<div class="note" style="margin:0;border-radius:var(--radius) var(--radius) 0 0">수익률 ${state.ymax}%를 넘는 종목 ${hidden.toLocaleString()}개는 빠져 있어요. ${state.freq === 'weekly' || state.freq === 'daily' ? '매주·매일 배당 상품은 대부분 옵션 프리미엄으로 분배하는 초고배당이라 원금 변동이 큽니다. ' : ''}<button class="btn sm" id="raise-ymax">상한 60%로 올려 보기</button></div>` : '';
+    $('#picks').innerHTML = hint + shown.map((it) => pickRow(it, state.picks.includes(it.id))).join('');
+    const rb = $('#raise-ymax'); if (rb) rb.addEventListener('click', () => { $('#ymax').value = 60; readForm(); state.picks = []; runPlan(false); });
     renderSlip();
     writeHash();
     if (scroll) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -202,7 +205,7 @@
       <span class="y"><b>${pct(it.y)}</b><small>${state.tax === 'after' ? '세후 ' + pct(it.y * TAX[it.m]) : '세전'}</small></span>
       <button type="button" class="info" data-info="${esc(it.id)}" aria-label="상세">i</button></label>`;
   }
-  const badge = (it) => `<span class="badge ${it.f}">${FREQ_KO[it.f] || it.f}${it.est ? '<span title="추정">?</span>' : ''}</span>`;
+  const badge = (it) => `<span class="badge ${it.f}">${FREQ_KO[it.f] || it.f}${it.est ? '<span title="추정">?</span>' : ''}</span>${it.y > 20 ? '<span class="badge warn" title="분배율이 매우 높아 원금 변동이 큰 상품입니다">초고배당</span>' : ''}`;
   const mktBadge = (it) => `<span class="badge ${it.m.toLowerCase()}">${it.m === 'KR' ? '국내' : '미국'} ${it.t === 'etf' ? 'ETF' : '주식'}</span>`;
   $('#picks').addEventListener('change', (e) => {
     const cb = e.target.closest('input[type=checkbox]'); if (!cb) return;

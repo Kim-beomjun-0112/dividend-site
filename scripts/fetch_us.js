@@ -45,20 +45,20 @@ function inferFreq(yieldPct, price, lastAmt, annualDps) {
 
 // 야후 차트 API로 최근 2년 배당 이벤트 → 12개월 합계(TTM)·지급 횟수·최근 배당일. 실패하면 null (네이버 값으로 대체)
 let yahooFails = 0;
-async function yahooDividends(symbol) {
+async function yahooDividends(symbol, interval = '1wk') {
   if (yahooFails > 40) return null; // 연속 실패가 많으면 차단된 것으로 보고 중단
   const sym = symbol.replace(/\s+/g, '-').replace(/\./g, '-');
   const hosts = ['query1', 'query2'];
   const host = hosts[Math.floor(Math.random() * hosts.length)];
   try {
-    const j = await getJSON(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=2y&interval=1mo&events=div`, { retries: 1, delay: 150, headers: { Referer: 'https://finance.yahoo.com/' } });
+    const j = await getJSON(`https://${host}.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=2y&interval=${interval}&events=div`, { retries: 1, delay: 150, headers: { Referer: 'https://finance.yahoo.com/' } });
     const r = j?.chart?.result?.[0]; if (!r) { yahooFails++; return null; }
     yahooFails = 0;
     const ev = Object.values(r.events?.dividends || {}).map((v) => ({ d: new Date(v.date * 1000).toISOString().slice(0, 10), a: v.amount })).filter((v) => v.a > 0).sort((a, b) => (a.d < b.d ? 1 : -1));
     const price = num(r.meta?.regularMarketPrice);
     if (!ev.length) return { price, hist: [], ttm: 0, count13: 0, lastEx: null, lastAmt: null };
     const latest = new Date(ev[0].d);
-    const c12 = new Date(latest); c12.setFullYear(c12.getFullYear() - 1);
+    const c12 = new Date(latest.getTime() - 350 * 86400000); // 1년 경계의 같은 회차 중복 방지
     const c13 = new Date(latest); c13.setMonth(c13.getMonth() - 13);
     const last12 = ev.filter((v) => new Date(v.d) > c12);
     const last13 = ev.filter((v) => new Date(v.d) > c13);
@@ -67,6 +67,15 @@ async function yahooDividends(symbol) {
 }
 function freqFromCount(c) {
   if (c >= 150) return 'daily'; if (c >= 30) return 'weekly'; if (c >= 10) return 'monthly'; if (c >= 3) return 'quarterly'; if (c === 2) return 'semiannual'; if (c === 1) return 'annual'; return 'unknown';
+}
+async function yahooSmart(e) {
+  let y = await yahooDividends(e.symbol, '1wk');
+  // 주봉 버킷에 묶여 횟수가 적게 잡힌 경우(일배당 등): 목록 수익률이 TTM보다 훨씬 크면 일봉으로 재조회
+  if (y && y.ttm > 0 && e.price && e.yieldListed && e.yieldListed / ((y.ttm / e.price) * 100) > 1.5) {
+    const y2 = await yahooDividends(e.symbol, '1d');
+    if (y2 && y2.ttm > y.ttm) y = y2;
+  }
+  return y;
 }
 function applyYahoo(e, y) {
   if (!y) return;
@@ -107,17 +116,27 @@ async function fetchETFs() {
         if (b && b.stockName) { list.push({ symbol: sym, reuters: sym + suf, name: b.stockName, exchange: b.stockExchangeName, price: num(b.closePriceRaw ?? b.closePrice), yieldListed: null, ret3m: null }); have.add(sym); break; }
       } catch { /* 다음 접미사 */ }
     }
+    if (!have.has(sym)) {
+      // 네이버에 없으면 야후 메타로 이름·가격만 채움
+      try {
+        const j = await getJSON(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?range=5d&interval=1d`, { retries: 1, delay: 150, headers: { Referer: 'https://finance.yahoo.com/' } });
+        const m = j?.chart?.result?.[0]?.meta;
+        if (m?.regularMarketPrice && m.currency === 'USD') { list.push({ symbol: sym, reuters: null, name: m.longName || m.shortName || sym, nameEn: m.longName || m.shortName || sym, exchange: m.fullExchangeName || null, price: num(m.regularMarketPrice), yieldListed: null, ret3m: null, yahooOnly: true }); have.add(sym); }
+      } catch { /* skip */ }
+    }
   }
   console.log(`  ${list.length}개, 상세 조회 중…`);
   let i = 0;
   for (const e of list) {
     try {
-      const b = await getJSON(`${API}/etf/${encodeURIComponent(e.reuters)}/basic`, { delay: 60 });
-      Object.assign(e, parseBasic(b));
-      if (e.price == null) e.price = num(b.closePrice);
-      Object.assign(e, inferFreq(e.yieldListed, e.price, e.lastAmt));
+      if (!e.yahooOnly) {
+        const b = await getJSON(`${API}/etf/${encodeURIComponent(e.reuters)}/basic`, { delay: 60 });
+        Object.assign(e, parseBasic(b));
+        if (e.price == null) e.price = num(b.closePrice);
+        Object.assign(e, inferFreq(e.yieldListed, e.price, e.lastAmt));
+      }
       e.est = true;
-      applyYahoo(e, await yahooDividends(e.symbol));
+      applyYahoo(e, await yahooSmart(e));
     } catch { e.freq = e.freq || 'unknown'; }
     if (++i % 200 === 0) console.log(`  ${i}/${list.length}`);
   }
@@ -154,7 +173,7 @@ async function fetchStocks() {
       const dpsAnnual = num((infos.find((t) => t.code === 'dividend') || {}).value) ?? s.dpsListed;
       s.dpsAnnual = dpsAnnual;
       s.freq = 'quarterly'; s.perYear = 4; s.est = true; // 기본값, 야후 이력이 있으면 덮어씀
-      applyYahoo(s, await yahooDividends(s.symbol));
+      applyYahoo(s, await yahooSmart(s));
     } catch { s.freq = s.freq || 'quarterly'; }
     if (++i % 200 === 0) console.log(`  ${i}/${list.length}`);
   }

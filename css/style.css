@@ -119,6 +119,7 @@ table.t .nm small { display: block; color: var(--muted); font-weight: 500; font-
 .badge.quarterly { background: #E2ECF8; color: #234D86; }
 .badge.semiannual, .badge.annual { background: #EEE; color: #555; }
 .badge.us { background: #E8EEF9; color: #2F4A7A; }
+.badge.warn { background: #FDE7E2; color: #9B3A26; }
 .badge.kr { background: #F1EDE4; color: #6E5A2B; }
 .cal { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 6px; }
 .cal div { background: var(--surface-2); border-radius: 8px; text-align: center; font-size: 10px; color: var(--muted); padding: 6px 0 5px; line-height: 1.2; overflow: hidden; }
