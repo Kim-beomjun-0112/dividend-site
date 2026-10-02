@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /data/raw/
+Sitemap: https://dividend.qjawnsl112.com/sitemap.xml

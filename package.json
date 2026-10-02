@@ -1,0 +1,14 @@
+{
+  "name": "bulluk-dividend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "불룩한배당 — 배당주 수집 스크립트",
+  "scripts": {
+    "fetch:kr": "node scripts/fetch_kr.js",
+    "fetch:us": "node scripts/fetch_us.js",
+    "fetch:fsc": "node scripts/fetch_fsc.js",
+    "build": "node scripts/build.js",
+    "update": "node scripts/fetch_fsc.js; node scripts/fetch_kr.js && node scripts/fetch_us.js && node scripts/build.js"
+  },
+  "dependencies": { "undici": "^6.19.0" }
+}
