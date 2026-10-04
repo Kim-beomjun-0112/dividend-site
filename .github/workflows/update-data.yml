@@ -11,7 +11,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,10 +22,14 @@ jobs:
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: node scripts/fetch_fsc.js || true
-      - name: 국내 수집
-        run: node scripts/fetch_kr.js all
-      - name: 미국 수집
-        run: node scripts/fetch_us.js all
+      - name: 국내·미국 수집 (병렬)
+        run: |
+          node scripts/fetch_kr.js all > kr.log 2>&1 &
+          node scripts/fetch_us.js etfs > us_etf.log 2>&1 &
+          node scripts/fetch_us.js stocks > us_stk.log 2>&1 &
+          wait
+          echo "== 국내"; cat kr.log; echo "== 미국 ETF"; cat us_etf.log; echo "== 미국 주식"; cat us_stk.log
+          test -s data/raw/kr_stocks.json && test -s data/raw/kr_etfs.json && test -s data/raw/us_etfs.json && test -s data/raw/us_stocks.json
       - name: 사이트 데이터 빌드
         run: node scripts/build.js
       - name: 커밋 & 푸시
