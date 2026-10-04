@@ -27,7 +27,7 @@ function issuerFromName(name) {
   return map[m[1]] || map[m[1].toUpperCase()] || m[1];
 }
 
-const LEV_RE = /레버리지|인버스|곱버스|\b[23]X\b|\bBull\b|\bBear\b|Ultra(?:Short|Pro)?|Inverse|Leveraged|Daily\s+\S+\s+(?:Bull|Bear)|-1x|2x|3x|1\.5x|1\.25x/i;
+const LEV_RE = /레버리지|인버스|곱버스|\b[23]X\b|\bBull\b|\bBear\b|ProShares Ultra|UltraShort|UltraPro|Inverse|Leveraged|-1x|\b2x\b|\b3x\b|1\.5x|1\.25x/i;
 const isLev = (name) => LEV_RE.test(String(name || ''));
 
 function buildKR() {
@@ -100,7 +100,7 @@ function buildUS() {
   const pickYield = (ttm, listed) => { if (ttm == null) return listed; if (listed == null) return ttm; const r = ttm / listed; return r > 1.8 || r < 0.55 ? listed : ttm; };
   for (const e of etfs) {
     const y = pickYield(e.yieldTtm, e.yieldListed);
-    if (!e.price || !y || y < 0.3 || y > 120 || isLev(e.nameEn || e.name)) continue;
+    if (!e.price || !y || y < 0.3 || y > 150 || isLev(e.nameEn || e.name)) continue;
     if (y !== e.yieldTtm) e.ttm = null;
     const f = e.freq && e.freq !== 'unknown' ? e.freq : 'quarterly';
     const pm = (!e.est && histMonths(e.hist)) || monthsFromFreq(f, monthOf(e.lastEx));
