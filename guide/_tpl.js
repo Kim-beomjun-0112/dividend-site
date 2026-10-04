@@ -17,13 +17,13 @@ const shell = (a) => `<!doctype html>
 <meta property="og:url" content="${SITE}/guide/${a.slug}.html">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23F5C63A'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%236B4E00' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="/css/style.css?v=1">
+<link rel="stylesheet" href="/css/style.css?v=2">
 <meta name="naver-site-verification" content="6aa72149c47ae66ad7cd6e335d03e5414cea1d06" />
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9705278233317075" crossorigin="anonymous"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${a.title}","description":"${a.desc}","datePublished":"${a.date}","dateModified":"${a.date}","author":{"@type":"Organization","name":"불룩한배당"},"publisher":{"@type":"Organization","name":"불룩한배당"},"mainEntityOfPage":"${SITE}/guide/${a.slug}.html"}</script>
 </head>
 <body>
-<header class="hdr"><div class="wrap"><a class="logo" href="/"><i></i>불룩한배당</a><nav class="nav"><a href="/#planner">플랜</a><a href="/#finder">종목 찾기</a><a href="/#guides">가이드</a></nav></div></header>
+<header class="hdr"><div class="wrap"><a class="logo" href="/"><i></i>불룩한배당</a><nav class="nav"><a href="/#planner">플랜</a><a href="/#finder" class="opt">종목 찾기</a><a href="/stocks/">종목별 글</a><a href="/#guides">가이드</a></nav></div></header>
 <main class="article">
 <div class="meta"><a href="/#guides">가이드</a> · ${a.date}</div>
 <h1>${a.title}</h1>
@@ -221,7 +221,9 @@ const ARTICLES = [
 ];
 
 for (const a of ARTICLES) fs.writeFileSync(path.join(__dirname, `${a.slug}.html`), shell(a));
-// sitemap
-const urls = [`${SITE}/`, ...ARTICLES.map((a) => `${SITE}/guide/${a.slug}.html`)];
-fs.writeFileSync(path.join(__dirname, '..', 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc><lastmod>2026-10-02</lastmod></url>`).join('\n')}\n</urlset>\n`);
+// sitemap — sitemap.xml 은 색인(index), 정적 페이지는 sitemap-pages.xml, 종목별 글은 scripts/build_stocks.js 가 sitemap-stocks.xml 로 생성
+const urls = [`${SITE}/`, `${SITE}/stocks/`, ...ARTICLES.map((a) => `${SITE}/guide/${a.slug}.html`)];
+const root = path.join(__dirname, '..');
+fs.writeFileSync(path.join(root, 'sitemap-pages.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc><lastmod>2026-10-05</lastmod></url>`).join('\n')}\n</urlset>\n`);
+fs.writeFileSync(path.join(root, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <sitemap><loc>${SITE}/sitemap-pages.xml</loc></sitemap>\n  <sitemap><loc>${SITE}/sitemap-stocks.xml</loc></sitemap>\n</sitemapindex>\n`);
 console.log(`가이드 ${ARTICLES.length}편 + sitemap 생성`);

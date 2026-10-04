@@ -32,6 +32,8 @@ jobs:
           test -s data/raw/kr_stocks.json && test -s data/raw/kr_etfs.json && test -s data/raw/us_etfs.json && test -s data/raw/us_stocks.json
       - name: 사이트 데이터 빌드
         run: node scripts/build.js
+      - name: 종목 소개 수집 (종목별 글용)
+        run: node scripts/fetch_desc.js || true
       - name: 커밋 & 푸시
         run: |
           git config user.name "dividend-bot"

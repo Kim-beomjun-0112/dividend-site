@@ -105,7 +105,7 @@ function buildUS() {
     const f = e.freq && e.freq !== 'unknown' ? e.freq : 'quarterly';
     const pm = (!e.est && histMonths(e.hist)) || monthsFromFreq(f, monthOf(e.lastEx));
     out.push({
-      id: `US:${e.symbol}`, m: 'US', t: 'etf', c: e.symbol, n: e.nameKo || e.name, nEn: (e.nameEn && e.nameEn !== (e.nameKo || e.name)) ? e.nameEn : undefined, p: e.price, cur: 'USD',
+      id: `US:${e.symbol}`, m: 'US', t: 'etf', c: e.symbol, rc: e.reuters || e.symbol, n: e.nameKo || e.name, nEn: (e.nameEn && e.nameEn !== (e.nameKo || e.name)) ? e.nameEn : undefined, p: e.price, cur: 'USD',
       y: r2(y), dps: r2(e.ttm ?? (y / 100) * e.price), f, py: e.perYear ?? null, est: !!e.est && !e.yahoo,
       pm: ['daily', 'weekly', 'monthly'].includes(f) ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : pm, lx: e.lastEx || null, la: e.lastAmt ?? null,
       h: (e.hist || []).slice(0, 14).map((h) => [h.d, h.a]),
@@ -121,7 +121,7 @@ function buildUS() {
     const anchor = monthOf(s.lastEx) || (s.payAt ? new Date(s.payAt).getMonth() + 1 : null);
     const pm = (s.yahoo && histMonths(s.hist)) || monthsFromFreq(f, anchor);
     out.push({
-      id: `US:${s.symbol}`, m: 'US', t: 'stock', c: s.symbol, n: s.nameKo || s.name, nEn: (s.nameEn && s.nameEn !== (s.nameKo || s.name)) ? s.nameEn : undefined, p: s.price, cur: 'USD',
+      id: `US:${s.symbol}`, m: 'US', t: 'stock', c: s.symbol, rc: s.reuters || s.symbol, n: s.nameKo || s.name, nEn: (s.nameEn && s.nameEn !== (s.nameKo || s.name)) ? s.nameEn : undefined, p: s.price, cur: 'USD',
       y: r2(y), dps: r2(s.ttm ?? s.dpsAnnual ?? (y / 100) * s.price), f, py: s.perYear ?? (f === 'monthly' ? 12 : 4), est: !s.yahoo,
       pm: ['daily', 'weekly', 'monthly'].includes(f) ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : pm, lx: s.lastEx || null, la: s.lastAmt ?? null,
       h: (s.hist || []).slice(0, 14).map((h) => [h.d, h.a]),

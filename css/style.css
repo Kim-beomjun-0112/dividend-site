@@ -210,3 +210,54 @@ footer .links a { margin-right: 12px; }
 .article .tip { background: var(--surface); border-left: 4px solid var(--coin); padding: 12px 14px; border-radius: 0 10px 10px 0; margin: 16px 0; }
 .article .toplan { display: inline-block; background: var(--green-deep); color: #fff; border-radius: 999px; padding: 10px 18px; font-weight: 800; margin-top: 12px; }
 .article .toplan:hover { text-decoration: none; filter: brightness(1.1); }
+
+/* 종목별 글 */
+.article h1 small { font-size: .5em; color: var(--muted); font-weight: 600; margin-left: 6px; letter-spacing: 0; }
+.sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 6px; }
+.sum div { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 6px; text-align: center; min-width: 0; }
+.sum span { display: block; font-size: 12px; color: var(--muted); }
+.sum b { display: block; font-size: clamp(17px, 4.6vw, 24px); letter-spacing: -0.02em; margin: 2px 0; color: var(--green-deep); overflow-wrap: anywhere; }
+.sum i { font-style: normal; font-size: 12px; color: var(--muted); }
+.article td.r, .article th.r { text-align: right; white-space: nowrap; }
+.article table.kv th { width: 36%; font-weight: 600; color: var(--ink-2); background: var(--surface-2); }
+.article .src-line { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.dchart { margin: 10px 0 14px; }
+.dchart svg { width: 100%; height: 110px; display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.dchart figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.flags li { margin-bottom: 8px; }
+.rel { list-style: none; padding: 0; display: grid; gap: 8px; }
+.rel a { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; color: var(--ink); }
+.rel a:hover { border-color: var(--green); text-decoration: none; }
+.rel a b { display: block; font-size: 15px; }
+.rel a span { color: var(--muted); font-size: 13px; }
+.hubpage { max-width: 960px; }
+.hubtools { margin: 16px 0 6px; display: grid; gap: 10px; }
+.hubtools input { width: 100%; border: 1.5px solid var(--line); border-radius: 999px; padding: 12px 16px; font: inherit; font-size: 16px; background: var(--surface); color: var(--ink); }
+.hubtools input:focus { outline: 2px solid var(--green); border-color: var(--green); }
+.hubcats { display: flex; flex-wrap: wrap; gap: 6px; }
+.hubcats a { background: var(--green-soft); color: var(--green-deep); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; font-weight: 700; }
+.hubcats a:hover { text-decoration: none; filter: brightness(.96); }
+.hsec h2 small { font-size: 14px; color: var(--muted); font-weight: 600; }
+.hsec .sub { margin: 0 0 10px; color: var(--muted); font-size: 14px; }
+.si-grid { display: grid; gap: 6px; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .si-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 860px) { .si-grid { grid-template-columns: repeat(3, 1fr); } }
+.si { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; color: var(--ink); min-width: 0; }
+.si:hover { border-color: var(--green); text-decoration: none; }
+.si b { display: block; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.si span { color: var(--muted); font-size: 12.5px; }
+#none { padding: 24px 0; color: var(--muted); text-align: center; }
+.hsec { margin: 10px 0; }
+.hsec > summary { cursor: pointer; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 16px; }
+.hsec > summary::-webkit-details-marker { display: none; }
+.hsec > summary h2 { margin: 12px 0; font-size: 18px; }
+.hsec > summary h2::after { content: '▾'; float: right; color: var(--muted); }
+.hsec[open] > summary h2::after { content: '▴'; }
+.hsec > .sub { margin: 10px 0; }
+.hsec { margin: 10px 0; }
+.hsec > summary { cursor: pointer; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 16px; }
+.hsec > summary::-webkit-details-marker { display: none; }
+.hsec > summary h2 { margin: 12px 0; font-size: 18px; }
+.hsec > summary h2::after { content: '▾'; float: right; color: var(--muted); }
+.hsec[open] > summary h2::after { content: '▴'; }
+.hsec > .sub { margin: 10px 0; }

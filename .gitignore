@@ -2,3 +2,5 @@ node_modules/
 .env
 data/raw/*.tmp
 data/raw/
+stocks/
+sitemap-stocks.xml
