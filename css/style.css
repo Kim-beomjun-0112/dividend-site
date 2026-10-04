@@ -189,7 +189,8 @@ table.t .nm small { display: block; color: var(--muted); font-weight: 500; font-
 .guides a span { color: var(--muted); font-size: 13.5px; }
 
 /* 광고 자리 */
-.ad { min-height: 90px; display: flex; align-items: center; justify-content: center; color: #B0BAB4; font-size: 12px; margin: 18px 0; }
+.ad { min-height: 90px; margin: 18px 0; overflow: hidden; }
+.ad ins { width: 100%; }
 
 /* 푸터 */
 footer { padding: 36px 0 44px; color: var(--muted); font-size: 13px; }

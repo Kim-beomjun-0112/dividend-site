@@ -18,6 +18,8 @@ const shell = (a) => `<!doctype html>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%23F5C63A'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%236B4E00' stroke-width='2.5'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="stylesheet" href="/css/style.css?v=1">
+<meta name="naver-site-verification" content="6aa72149c47ae66ad7cd6e335d03e5414cea1d06" />
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9705278233317075" crossorigin="anonymous"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"${a.title}","description":"${a.desc}","datePublished":"${a.date}","dateModified":"${a.date}","author":{"@type":"Organization","name":"불룩한배당"},"publisher":{"@type":"Organization","name":"불룩한배당"},"mainEntityOfPage":"${SITE}/guide/${a.slug}.html"}</script>
 </head>
 <body>
@@ -26,10 +28,10 @@ const shell = (a) => `<!doctype html>
 <div class="meta"><a href="/#guides">가이드</a> · ${a.date}</div>
 <h1>${a.title}</h1>
 <p class="meta">${a.desc}</p>
-<div class="ad" data-slot="article-top">광고 자리</div>
+<div class="ad" data-slot="article-top"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9705278233317075" data-ad-slot="5549605452" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
 ${a.body}
 <div class="tip"><b>직접 계산해 보기</b><br>월 배당 목표나 월 투자금을 넣으면 조건에 맞는 종목과 매수 수량·간격이 바로 나옵니다.<br><a class="toplan" href="/#planner">배당 플랜 만들기</a></div>
-<div class="ad" data-slot="article-bottom">광고 자리</div>
+<div class="ad" data-slot="article-bottom"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9705278233317075" data-ad-slot="5874355734" data-ad-format="autorelaxed"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></div>
 <h2>함께 읽기</h2>
 <ul>${ARTICLES.filter((x) => x.slug !== a.slug).map((x) => `<li><a href="/guide/${x.slug}.html">${x.title}</a></li>`).join('')}</ul>
 <p style="font-size:13px;color:var(--muted)">이 글은 정보 제공 목적이며 특정 종목의 매수·매도를 권유하지 않습니다. 세율·제도는 글 작성 시점 기준이므로 실제 거래 전 최신 내용을 확인하세요.</p>
