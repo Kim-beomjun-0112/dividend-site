@@ -3,9 +3,11 @@
 const MIN = {
   krStockMcapEok: 500,   // 국내 주식 시가총액 하한 (억원)
   krStockYield: 1,       // 국내 주식 배당수익률 하한 (%)
+  krStockBigEok: 10000,  // 이 시총(억원, =1조) 이상 대형주는 수익률 무관 포함 (삼성전자 등)
   krEtfAumEok: 100,      // 국내 ETF 순자산 하한 (억원)
   usStockMcapEok: 10,    // 미국 주식 시가총액 하한 (억 달러)
   usStockYield: 1,       // 미국 주식 배당수익률 하한 (%)
+  usStockBigEok: 100,    // 이 시총(억 달러) 이상 대형주는 수익률 무관 포함 (애플·MS 등)
   usEtfMcapEok: 1,       // 미국 ETF 시가총액 하한 (억 달러)
 };
 
@@ -27,9 +29,9 @@ function size(x) { // 정렬용 규모 (억 단위, 국내는 원화·미국은 
 
 function eligible(x) {
   if (!(x.y > 0) || !x.p) return false;
-  if (x.m === 'KR' && x.t === 'stock') return x.y >= MIN.krStockYield && eok(x.mc) >= MIN.krStockMcapEok;
+  if (x.m === 'KR' && x.t === 'stock') return eok(x.mc) >= MIN.krStockBigEok || (x.y >= MIN.krStockYield && eok(x.mc) >= MIN.krStockMcapEok);
   if (x.m === 'KR' && x.t === 'etf') return (x.aum || 0) >= MIN.krEtfAumEok;
-  if (x.m === 'US' && x.t === 'stock') return x.y >= MIN.usStockYield && eok(x.mc) >= MIN.usStockMcapEok;
+  if (x.m === 'US' && x.t === 'stock') return eok(x.mc) >= MIN.usStockBigEok || (x.y >= MIN.usStockYield && eok(x.mc) >= MIN.usStockMcapEok);
   if (x.m === 'US' && x.t === 'etf') return eok(x.mc) >= MIN.usEtfMcapEok;
   return false;
 }

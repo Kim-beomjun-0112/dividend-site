@@ -87,8 +87,9 @@
           <div class="field">
             <label>시장</label>
             <div class="chips" id="mkt-chips">
-              <button class="chip" data-v="KR" aria-pressed="true">국내</button>
-              <button class="chip" data-v="US" aria-pressed="true">미국</button>
+              <button class="chip" data-v="KR,US" aria-pressed="true">국내+미국</button>
+              <button class="chip" data-v="KR" aria-pressed="false">국내만</button>
+              <button class="chip" data-v="US" aria-pressed="false">미국만</button>
             </div>
           </div>
           <div class="field">
@@ -147,9 +148,9 @@
       <div class="toolbar">
         <input type="search" id="q" placeholder="종목명 또는 코드 (예: 리얼티, SCHD, 069500)">
         <select id="f-freq"><option value="all">모든 주기</option><option value="daily">매일</option><option value="weekly">매주</option><option value="monthly">매월</option><option value="quarterly">분기</option><option value="annual">반기·연</option></select>
-        <select id="f-mkt"><option value="all">국내+미국</option><option value="KR">국내</option><option value="US">미국</option></select>
+        <select id="f-mkt"><option value="all">국내+미국</option><option value="KR">국내만</option><option value="US">미국만</option></select>
         <select id="f-type"><option value="all">ETF+주식</option><option value="etf">ETF</option><option value="stock">주식</option></select>
-        <select id="f-sort"><option value="s">추천순 (수익률+규모)</option><option value="y">수익률 높은 순</option><option value="yl">수익률 낮은 순</option><option value="p">가격 낮은 순</option><option value="n">이름순</option></select>
+        <select id="f-sort"><option value="s">추천순 (수익률+규모)</option><option value="y">수익률 높은 순 (40%↑는 뒤로)</option><option value="yl">수익률 낮은 순</option><option value="p">가격 낮은 순</option><option value="n">이름순</option></select>
       </div>
       <div id="finder-list"></div>
       <button class="more" id="more" hidden>더 보기</button>

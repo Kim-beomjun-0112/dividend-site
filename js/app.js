@@ -79,7 +79,7 @@
   const pressedVals = (id) => $$('.chip[aria-pressed="true"]', $(id)).map((c) => c.dataset.v);
   function readForm() {
     state.freq = pressedVals('#freq-chips')[0] || 'all';
-    state.mkts = new Set(pressedVals('#mkt-chips'));
+    state.mkts = new Set((pressedVals('#mkt-chips')[0] || 'KR,US').split(','));
     state.types = new Set(pressedVals('#type-chips'));
     state.tax = pressedVals('#tax-chips')[0] || 'after';
     state.ymin = parseFloat($('#ymin').value); state.ymax = parseFloat($('#ymax').value);
@@ -88,7 +88,7 @@
     state.fx = Math.max(500, parseFloat($('#fx').value) || 1400);
   }
   bindChips('#freq-chips', true, readForm);
-  bindChips('#mkt-chips', false, readForm);
+  bindChips('#mkt-chips', true, readForm);
   bindChips('#type-chips', false, readForm);
   bindChips('#tax-chips', true, readForm);
   ['#ymin', '#ymax', '#fx'].forEach((s) => $(s).addEventListener('input', readForm));
@@ -127,6 +127,17 @@
       if (fams.has(fk)) continue;
       if (it.t === 'stock' && it.sec && sectors.has(sk)) continue;
       picked.push(it); fams.add(fk); if (it.sec) sectors.add(sk);
+    }
+    // 시장 균형: 국내·미국 후보가 모두 있는데 한쪽만 뽑혔다면 반대쪽 최상위 1개로 마지막 자리를 교체
+    if (n >= 3) {
+      for (const mk of ['KR', 'US']) {
+        if (picked.some((x) => x.m === mk)) continue;
+        const alt = sorted.find((x) => x.m === mk && !fams.has(familyKey(x)));
+        if (!alt) continue;
+        let idx = -1;
+        for (let i = picked.length - 1; i >= 0; i--) if (picked[i].m !== mk) { idx = i; break; }
+        if (idx > 0) { picked[idx] = alt; fams.add(familyKey(alt)); }
+      }
     }
     // 2단계: 모자라면 채움
     for (const it of sorted) { if (picked.length >= n) break; if (!picked.includes(it)) picked.push(it); }
@@ -301,7 +312,7 @@
     const f = $('#f-freq').value, m = $('#f-mkt').value, t = $('#f-type').value, sort = $('#f-sort').value;
     let arr = state.items.filter((it) => (m === 'all' || it.m === m) && (t === 'all' || it.t === t) && freqMatch(it, f)
       && (!q || it.n.toLowerCase().includes(q) || String(it.c).toLowerCase().includes(q) || (it.nEn || '').toLowerCase().includes(q)));
-    if (sort === 's') arr.sort((a, b) => score(b) - score(a)); else if (sort === 'y') arr.sort((a, b) => b.y - a.y); else if (sort === 'yl') arr.sort((a, b) => a.y - b.y);
+    if (sort === 's') arr.sort((a, b) => score(b) - score(a)); else if (sort === 'y') arr.sort((a, b) => ((a.y > 40) - (b.y > 40)) || b.y - a.y); else if (sort === 'yl') arr.sort((a, b) => a.y - b.y);
     else if (sort === 'p') arr.sort((a, b) => priceKRW(a) - priceKRW(b)); else arr.sort((a, b) => a.n.localeCompare(b.n, 'ko'));
     return arr;
   }
@@ -372,7 +383,7 @@
       state.mode = o.m || 'goal'; $(`.tabs [data-mode=${state.mode}]`).click();
       $('#goal').value = o.g || 50; $('#budget1').value = o.b1 || ''; $('#budget2').value = o.b2 || 50; $('#years').value = o.y || 10;
       const setChips = (id, vals) => $$('.chip', $(id)).forEach((c) => c.setAttribute('aria-pressed', vals.includes(c.dataset.v) ? 'true' : 'false'));
-      setChips('#freq-chips', [o.f || 'all']); setChips('#mkt-chips', (o.k || 'KRUS').match(/KR|US/g) || ['KR', 'US']); setChips('#type-chips', (o.t || 'etf,stock').split(',')); setChips('#tax-chips', [o.x || 'after']);
+      setChips('#freq-chips', [o.f || 'all']); setChips('#mkt-chips', [o.k === 'KR' ? 'KR' : o.k === 'US' ? 'US' : 'KR,US']); setChips('#type-chips', (o.t || 'etf,stock').split(',')); setChips('#tax-chips', [o.x || 'after']);
       $('#ymin').value = o.lo ?? 3; $('#ymax').value = o.hi ?? 12; if (o.fx) $('#fx').value = o.fx;
       readForm(); state.picks = Array.isArray(o.p) ? o.p : []; runPlan(true); return true;
     } catch { return false; }

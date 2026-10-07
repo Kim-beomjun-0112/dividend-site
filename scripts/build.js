@@ -56,7 +56,7 @@ function buildKR() {
     if (!s.price || !s.dps || isLev(s.name)) continue;
     const y = (s.dps / s.price) * 100;
     if (y < 0.3) continue;
-    let f = 'annual', py = 1, pm = [], recs = [], payDates = [], est = true;
+    let f = 'annual', py = 1, pm = [], recs = [], payDates = [], est = true, lxPaid = null;
     const fs = fsc?.stocks?.[s.code];
     if (fs && fs.recs.length) {
       const paid = fs.recs.filter((r) => r.amt > 0);
@@ -68,7 +68,8 @@ function buildKR() {
         const last12 = paid.filter((r) => new Date(r.base) > cutoff);
         payDates = last12.map((r) => r.pay).filter(Boolean);
         pm = monthsFromDates(payDates.length ? payDates : last12.map((r) => r.base));
-        recs = fs.recs.slice(0, 12).map((r) => [r.base, r.pay, r.amt]);
+        recs = paid.slice(0, 12).map((r) => [r.base, r.pay, r.amt]); // 금액 미정(0원) 레코드는 제외
+        lxPaid = paid[0].base;
       }
     }
     if (!pm.length) {
@@ -81,7 +82,7 @@ function buildKR() {
     const growing = hist.length >= 3 && hist[0] >= hist[1] && hist[1] >= hist[2];
     out.push({
       id: `KR:${s.code}`, m: 'KR', t: 'stock', c: s.code, n: s.name, p: s.price, cur: 'KRW',
-      y: r2(y), dps: s.dps, f, py, pm, est, lx: fs?.recs?.[0]?.base || null, la: recs[0]?.[2] ?? null,
+      y: r2(y), dps: s.dps, f, py, pm, est, lx: lxPaid || fs?.recs?.[0]?.base || null, la: recs[0]?.[2] ?? null,
       h: hist, recs, streak, grow: growing, mc: s.marketCapText || null, sec: s.sector || null, ex: s.market, fiscal: s.fiscal, src: fs ? 'naver+fsc' : 'naver',
     });
   }
@@ -114,7 +115,8 @@ function buildUS() {
   }
   for (const s of stocks) {
     const y = pickYield(s.yieldTtm, s.yieldListed);
-    if (!s.price || !y || y < 0.3 || y > 60) continue;
+    if (!s.price || !y || y > 60) continue;
+    if (y < 0.3 && !(s.mcap >= 1e10 && y >= 0.02)) continue; // 시총 100억 달러 이상 대형주는 수익률이 낮아도 포함
     if (y !== s.yieldTtm) s.ttm = null;
     let f = s.yahoo && s.freq ? s.freq : (US_MONTHLY_STOCKS.has(s.symbol) ? 'monthly' : 'quarterly');
     if (f === 'unknown') f = 'quarterly';

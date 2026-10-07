@@ -9,7 +9,8 @@ const MIN_ETF_YIELD = 1.0;        // 배당수익률 1% 미만 ETF 제외
 const MAX_ETF = 1600;
 const MIN_STOCK_YIELD = 0.8;
 const MIN_STOCK_MCAP = 1.5e9;     // 시총 15억 달러 이상
-const MAX_STOCK = 900;
+const BIG_STOCK_MCAP = 1e10;      // 시총 100억 달러 이상은 수익률 무관 포함
+const MAX_STOCK = 1500;
 
 function parseBasic(b) {
   const infos = b.stockItemTotalInfos || [];
@@ -155,7 +156,9 @@ async function fetchStocks() {
       const mcap = num(r.marketValue);
       if (mcap !== null && mcap < MIN_STOCK_MCAP) { stop = true; break; }
       const y = num(r.dividendYield);
-      if (!y || y < MIN_STOCK_YIELD) continue;
+      // 시총 100억 달러 이상 대형주는 수익률이 낮아도(애플·MS 등) 배당을 지급하면 포함, 그 아래는 수익률 하한 적용
+      const big = mcap !== null && mcap >= BIG_STOCK_MCAP;
+      if (!y || (!big && y < MIN_STOCK_YIELD)) continue;
       if (/_p/.test(r.reutersCode || '')) continue; // 우선주 제외
       list.push({ symbol: r.symbolCode, reuters: r.reutersCode, name: r.name, exchange: r.stockExchangeType, price: num(r.currentPrice), mcap, yieldListed: y, dpsListed: num(r.dividend), payAt: r.dividendPayAt || null });
     }

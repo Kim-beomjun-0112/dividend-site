@@ -19,6 +19,13 @@ const curated = read('data/curated.json', {});
 const meta = read('data/meta.json', {});
 if (!kr.length && !us.length) { console.log('데이터 없음 — 종목별 글 생성을 건너뜀'); process.exit(0); }
 
+// 금액이 아직 정해지지 않은(0원) 국내 배당 기록은 제외하고 최근 배당 정보를 다시 맞춘다 (build.js 갱신 전 데이터 대비)
+for (const x of kr) {
+  if (!Array.isArray(x.recs) || !x.recs.length) continue;
+  const paid = x.recs.filter((r) => r[2] > 0);
+  if (paid.length) { x.recs = paid; x.lx = paid[0][0]; x.la = paid[0][2]; }
+}
+
 const FX = meta.usdkrw || 1350;
 const kst = (iso) => { const d = new Date(iso || Date.now()); return new Date(d.getTime() + 9 * 3600e3).toISOString().slice(0, 10); };
 const UPDATED = kst(meta.updated);
@@ -194,6 +201,7 @@ function about(x) {
 function flags(x, tr) {
   const d = desc[x.id] || {};
   const f = [];
+  if (x.t === 'stock' && x.y < 1.5) f.push(`<b>배당수익률이 ${pct(x.y)}로 낮은 편입니다.</b> 배당보다 주가 상승이 수익의 중심인 종목이라, 배당만으로 월 생활비를 만들려면 위 표처럼 필요한 투자금이 매우 큽니다. 배당 투자용보다는 성장 투자 종목에 가깝습니다.`);
   if (x.y >= 30) f.push(`<b>배당수익률이 ${pct(x.y)}로 매우 높습니다.</b> 이 정도 수치는 대부분 옵션 프리미엄이나 일회성 배당, 또는 주가 급락으로 분모가 줄어서 생깁니다. 같은 수준이 앞으로도 이어진다고 가정하기 어렵습니다.`);
   else if (x.y >= 12) f.push(`<b>배당수익률이 ${pct(x.y)}로 높은 편입니다.</b> 분배금의 출처(배당·이자·옵션 프리미엄)와 주가 추이를 함께 보세요. 분배금을 받아도 주가가 그만큼 내려가면 총수익은 제자리일 수 있습니다.`);
   const r1y = d.r1y ?? null;
@@ -292,7 +300,7 @@ function page(x) {
     rows.push(['최근 수익률(네이버 증권)', rr.join(' · ')]);
   }
   if (x.t === 'stock' && x.streak) rows.push(['연속 배당 기록', `최근 ${x.streak}년`]);
-  if (x.m === 'KR' && x.t === 'stock' && x.recs?.[0]) rows.push(['최근 결산 배당', `기준일 ${x.recs[0][0]} · 지급일 ${x.recs[0][1]} · 주당 ${nf(x.recs[0][2])}원`]);
+  if (x.m === 'KR' && x.t === 'stock' && x.recs?.[0]) rows.push(['최근 결산 배당', `기준일 ${x.recs[0][0]} · 지급일 ${x.recs[0][1] || '미정'} · 주당 ${nf(x.recs[0][2])}원`]);
   const table = `<table class="kv"><tbody>${rows.map(([a, b]) => `<tr><th>${esc(a)}</th><td>${esc(b)}</td></tr>`).join('')}</tbody></table>`;
 
   // 배당 이력
@@ -440,6 +448,11 @@ ${HEADER}
 <p>각 종목 페이지에는 어떤 종목인지 간단한 소개, 배당수익률과 세후 수익률, 배당 주기와 지급월, 최근 분배금 흐름, 월 30·50·100만원을 받기 위해 필요한 투자금, 투자 전 확인할 점을 담았습니다. 수치는 매주 월요일에 자동으로 갱신됩니다. 지금은 매일·매주 배당 ${nf(fl.daily + fl.weekly)}종목, 매월 배당 ${nf(fl.monthly)}종목이 들어 있습니다.</p>
 <div class="hubtools">
 <input id="q" type="search" placeholder="종목명·티커 검색 (예: SCHD, 삼성전자, 커버드콜)" aria-label="종목 검색" autocomplete="off">
+<div class="chips" id="mchips">
+<button class="chip" data-m="" aria-pressed="true">국내+미국</button>
+<button class="chip" data-m="kr" aria-pressed="false">국내만</button>
+<button class="chip" data-m="us" aria-pressed="false">미국만</button>
+</div>
 <div class="chips" id="fchips">
 <button class="chip" data-f="" aria-pressed="true">전체</button>
 <button class="chip" data-f="daily,weekly" aria-pressed="false">매일·매주</button>
@@ -459,7 +472,7 @@ ${FOOTER}
 (function(){
   var q=document.getElementById('q'),chips=document.querySelectorAll('#fchips .chip'),none=document.getElementById('none');
   var items=[].slice.call(document.querySelectorAll('.si')),secs=[].slice.call(document.querySelectorAll('.hsec'));
-  var fset=null;
+  var fset=null,mset='',mchips=document.querySelectorAll('#mchips .chip');
   function run(){
     var t=q.value.trim().toLowerCase(),shown=0;
     items.forEach(function(a){
@@ -467,11 +480,15 @@ ${FOOTER}
       a.hidden=!ok; if(ok)shown++;
     });
     var active=!!(t||fset);
-    secs.forEach(function(s){var has=!!s.querySelector('.si:not([hidden])');s.hidden=!has;if(active&&has)s.open=true;});
-    none.hidden=shown>0;
+    secs.forEach(function(s){var has=!!s.querySelector('.si:not([hidden])')&&(!mset||s.id.indexOf(mset+'-')===0);s.hidden=!has;if(active&&has)s.open=true;});
+    none.hidden=!!secs.filter(function(s){return !s.hidden;}).length;
   }
   function openHash(){var h=location.hash.slice(1),e=h&&document.getElementById(h);if(e&&e.tagName==='DETAILS'){e.open=true;e.scrollIntoView();}}
   window.addEventListener('hashchange',openHash);openHash();
+  mchips.forEach(function(c){c.addEventListener('click',function(){
+    mchips.forEach(function(o){o.setAttribute('aria-pressed',o===c?'true':'false');});
+    mset=c.dataset.m; run();
+  });});
   q.addEventListener('input',run);
   chips.forEach(function(c){c.addEventListener('click',function(){
     chips.forEach(function(o){o.setAttribute('aria-pressed',o===c?'true':'false');});
